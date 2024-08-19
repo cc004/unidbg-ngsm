@@ -335,6 +335,11 @@ public abstract class AbstractEmulator<T extends NewFileIO> implements Emulator<
     }
 
     protected final Number runMainForResult(MainTask task) {
+
+        if (getThreadDispatcher().getRunningTask() != null) {
+            getThreadDispatcher().addThread(task);
+            return 0;
+        }
         Memory memory = getMemory();
         long spBackup = memory.getStackPoint();
         try {

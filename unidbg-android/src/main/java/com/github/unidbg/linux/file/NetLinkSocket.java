@@ -8,6 +8,7 @@ import com.sun.jna.Pointer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -143,6 +144,11 @@ public class NetLinkSocket extends SocketIO implements FileIO {
     @Override
     protected int getTcpNoDelay() {
         throw new UnsupportedOperationException(getClass().getName());
+    }
+
+    @Override
+    protected void setSoTimeout(int timeout) throws SocketException {
+
     }
 
     @Override

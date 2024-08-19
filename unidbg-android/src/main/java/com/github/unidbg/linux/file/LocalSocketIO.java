@@ -12,6 +12,7 @@ import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -157,5 +158,9 @@ public class LocalSocketIO extends SocketIO implements FileIO {
     @Override
     protected int getTcpNoDelay() {
         throw new AbstractMethodError();
+    }
+
+    @Override
+    protected void setSoTimeout(int timeout) throws SocketException {
     }
 }

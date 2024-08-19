@@ -11,6 +11,7 @@ import org.apache.commons.logging.LogFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -122,4 +123,5 @@ public class LocalAndroidUdpSocket extends LocalUdpSocket implements AndroidFile
         emulator.getMemory().setErrno(UnixEmulator.EPERM);
         return -1;
     }
+
 }

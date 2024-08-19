@@ -39,8 +39,23 @@ public class TcpSocket extends SocketIO implements FileIO {
     private TcpSocket(Emulator<?> emulator, Socket socket) {
         this.emulator = emulator;
         this.socket = socket;
+        try {
+            socket.setSoTimeout(5000);
+        } catch (SocketException ignored) {
+
+        }
         if (emulator.getSyscallHandler().isVerbose()) {
             System.out.printf("Tcp opened '%s' from %s%n", this, emulator.getContext().getLRPointer());
+        }
+    }
+
+    public boolean canReceive() {
+        try {
+            outputStream.flush();
+            // System.out.println("poll: " + inputStream.available());
+            return inputStream != null && inputStream.available() > 0;
+        } catch (IOException ignored) {
+            return false;
         }
     }
 
@@ -268,6 +283,11 @@ public class TcpSocket extends SocketIO implements FileIO {
     @Override
     protected int getTcpNoDelay() throws SocketException {
         return socket.getTcpNoDelay() ? 1 : 0;
+    }
+
+    @Override
+    protected void setSoTimeout(int timeout) throws SocketException {
+        socket.setSoTimeout(timeout);
     }
 
     @Override

@@ -177,6 +177,11 @@ public class UdpSocket extends SocketIO implements FileIO {
     }
 
     @Override
+    protected void setSoTimeout(int timeout) throws SocketException {
+        datagramSocket.setSoTimeout(timeout);
+    }
+
+    @Override
     public int ioctl(Emulator<?> emulator, long request, long argp) {
         if (request == SIOCGIFCONF) {
             return getIFaceList(emulator, argp);

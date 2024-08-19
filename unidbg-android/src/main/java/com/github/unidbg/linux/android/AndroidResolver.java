@@ -38,6 +38,7 @@ public class AndroidResolver implements LibraryResolver, IOResolver<AndroidFileI
 
     private final int sdk;
     private final List<String> needed;
+    public final List<String> paths = new ArrayList<>();
 
     public AndroidResolver(int sdk, String... needed) {
         this.sdk = sdk;
@@ -71,19 +72,22 @@ public class AndroidResolver implements LibraryResolver, IOResolver<AndroidFileI
             return null;
         }
 
-        return resolveLibrary(emulator, libraryName, sdk, getClass());
+        return resolveLibraryInternal(emulator, libraryName);
     }
 
-    static LibraryFile resolveLibrary(Emulator<?> emulator, String libraryName, int sdk) {
-        return resolveLibrary(emulator, libraryName, sdk, AndroidResolver.class);
-    }
-
-    protected static LibraryFile resolveLibrary(Emulator<?> emulator, String libraryName, int sdk, Class<?> resClass) {
+    protected LibraryFile resolveLibraryInternal(Emulator<?> emulator, String libraryName) {
         final String lib = emulator.is32Bit() ? "lib" : "lib64";
         String name = "/android/sdk" + sdk + "/" + lib + "/" + libraryName.replace('+', 'p');
-        URL url = resClass.getResource(name);
+        URL url = getClass().getResource(name);
         if (url != null) {
             return new URLibraryFile(url, libraryName, sdk, emulator.is64Bit());
+        }
+        for (String p : paths) {
+            name = p + libraryName.replace('+', 'p');
+            url = getClass().getResource(name);
+            if (url != null) {
+                return new URLibraryFile(url, libraryName, sdk, emulator.is64Bit());
+            }
         }
         return null;
     }
@@ -169,7 +173,7 @@ public class AndroidResolver implements LibraryResolver, IOResolver<AndroidFileI
 
     private AndroidFileIO createFileIO(File file, String pathname, int oflags) {
         if (file.canRead()) {
-            return file.isDirectory() ? new DirectoryFileIO(oflags, pathname) : new SimpleFileIO(oflags, file, pathname);
+            return file.isDirectory() ? new DirectoryFileIO(oflags, pathname, file) : new SimpleFileIO(oflags, file, pathname);
         }
 
         return null;

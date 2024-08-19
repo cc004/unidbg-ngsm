@@ -760,7 +760,7 @@ public abstract class AndroidSyscallHandler extends UnixSyscallHandler<AndroidFi
         Pointer req = context.getPointerArg(0);
         Pointer rem = context.getPointerArg(1);
         TimeSpec timeSpec = TimeSpec.createTimeSpec(emulator, req);
-        if (log.isDebugEnabled()) {
+        if (log.isTraceEnabled()) {
             log.debug("nanosleep req={}, rem={}, timeSpec={}", req, rem, timeSpec);
         }
         RunnableTask runningTask = emulator.getThreadDispatcher().getRunningTask();

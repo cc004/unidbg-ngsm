@@ -30,10 +30,13 @@ import com.github.unidbg.linux.file.UdpSocket;
 import com.github.unidbg.linux.struct.RLimit64;
 import com.github.unidbg.linux.struct.Stat64;
 import com.github.unidbg.linux.thread.MarshmallowThread;
+import com.github.unidbg.linux.thread.PPollWaiter;
+import com.github.unidbg.linux.thread.PipeReceiveWaiter;
 import com.github.unidbg.memory.Memory;
 import com.github.unidbg.memory.SvcMemory;
 import com.github.unidbg.pointer.UnidbgPointer;
 import com.github.unidbg.thread.PopContextException;
+import com.github.unidbg.thread.RunnableTask;
 import com.github.unidbg.thread.Task;
 import com.github.unidbg.thread.ThreadContextSwitchException;
 import com.github.unidbg.unix.IO;
@@ -744,6 +747,7 @@ public class ARM64SyscallHandler extends AndroidSyscallHandler {
         int nfds = context.getIntArg(1);
         Pointer tmo_p = context.getPointerArg(2);
         Pointer sigmask = context.getPointerArg(3);
+
         int count = 0;
         for (int i = 0; i < nfds; i++) {
             Pointer pollfd = fds.share(i * 8L);
@@ -759,10 +763,24 @@ public class ARM64SyscallHandler extends AndroidSyscallHandler {
                 if ((events & POLLOUT) != 0) {
                     revents = POLLOUT;
                 } else if ((events & POLLIN) != 0) {
+                    FileIO io = fdMap.get(fd);
+                    if (io instanceof TcpSocket) {
+                        TcpSocket pio = (TcpSocket) io;
+                        if (!pio.canReceive()) continue;
+                    }
                     revents = POLLIN;
                 }
                 pollfd.setShort(6, revents); // returned events
                 count++;
+            }
+        }
+
+        if (count == 0) {
+            RunnableTask runningTask = emulator.getThreadDispatcher().getRunningTask();
+            if (threadDispatcherEnabled && runningTask != null) {
+                runningTask.setWaiter(emulator, new PPollWaiter(
+                        emulator, fds, nfds, tmo_p, sigmask, fdMap));
+                throw new ThreadContextSwitchException().setReturnValue(0);
             }
         }
         return count;
@@ -857,6 +875,17 @@ public class ARM64SyscallHandler extends AndroidSyscallHandler {
         if (file == null) {
             emulator.getMemory().setErrno(UnixEmulator.EBADF);
             return -1;
+        }
+
+        if (file instanceof SocketIO) {
+            SocketIO io = (SocketIO) file;
+            RunnableTask runningTask = emulator.getThreadDispatcher().getRunningTask();
+            if (threadDispatcherEnabled && runningTask != null) {
+                runningTask.setWaiter(emulator, new PipeReceiveWaiter(
+                        emulator, io, backend, buf, len, flags, src_addr, addrlen
+                ));
+                throw new ThreadContextSwitchException().setReturnValue(0);
+            }
         }
         return file.recvfrom(backend, buf, len, flags, src_addr, addrlen);
     }
@@ -1213,6 +1242,7 @@ public class ARM64SyscallHandler extends AndroidSyscallHandler {
 
     private static final int CLOCK_REALTIME = 0;
     private static final int CLOCK_MONOTONIC = 1;
+    private static final int CLOCK_PROCESS_CPUTIME_ID = 2;
     private static final int CLOCK_MONOTONIC_RAW = 4;
     private static final int CLOCK_MONOTONIC_COARSE = 6;
     private static final int CLOCK_BOOTTIME = 7;
@@ -1235,10 +1265,12 @@ public class ARM64SyscallHandler extends AndroidSyscallHandler {
             case CLOCK_MONOTONIC_RAW:
             case CLOCK_MONOTONIC_COARSE:
             case CLOCK_BOOTTIME:
+            case CLOCK_PROCESS_CPUTIME_ID:
                 tp.setLong(0, tv_sec);
                 tp.setLong(8, tv_nsec);
                 return 0;
         }
+
         if (log.isDebugEnabled()) {
             emulator.attach().debug();
         }
@@ -1457,7 +1489,7 @@ public class ARM64SyscallHandler extends AndroidSyscallHandler {
             return -1;
         }
         int pos = file.lseek(offset, whence);
-        if (log.isDebugEnabled()) {
+        if (log.isTraceEnabled()) {
             log.debug("lseek fd={}, offset={}, whence={}, pos={}", fd, offset, whence, pos);
         }
         return pos;

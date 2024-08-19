@@ -67,6 +67,11 @@ public abstract class LocalUdpSocket extends SocketIO implements FileIO {
     }
 
     @Override
+    protected void setSoTimeout(int timeout) throws SocketException {
+
+    }
+
+    @Override
     protected void setReuseAddress(int reuseAddress) {
         throw new AbstractMethodError();
     }

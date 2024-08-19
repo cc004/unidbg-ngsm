@@ -13,6 +13,7 @@
         <module>backend/hypervisor</module>
         <module>backend/kvm</module>
         <module>backend/unicorn2</module>
+        <module>unidbg-ngsm</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

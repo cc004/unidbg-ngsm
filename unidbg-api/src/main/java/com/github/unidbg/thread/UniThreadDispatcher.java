@@ -21,17 +21,19 @@ public class UniThreadDispatcher implements ThreadDispatcher {
 
     private static final Log log = LogFactory.getLog(UniThreadDispatcher.class);
 
-    private final List<Task> taskList = new ArrayList<>();
-    private final AbstractEmulator<?> emulator;
+    public final List<Task> taskList = new ArrayList<>();
+    public final AbstractEmulator<?> emulator;
+    private Number mainRet;
+    public boolean canReturn;
 
     public UniThreadDispatcher(AbstractEmulator<?> emulator) {
         this.emulator = emulator;
     }
 
-    private final List<ThreadTask> threadTaskList = new ArrayList<>();
+    public final List<Task> threadTaskList = new ArrayList<>();
 
     @Override
-    public void addThread(ThreadTask task) {
+    public void addThread(Task task) {
         threadTaskList.add(task);
     }
 
@@ -124,17 +126,21 @@ public class UniThreadDispatcher implements ThreadDispatcher {
 
     private Number run(long timeout, TimeUnit unit) {
         try {
+            boolean pendReturn = false;
             long start = System.currentTimeMillis();
+            long lastDispatched = System.currentTimeMillis();
             while (true) {
                 if (taskList.isEmpty()) {
                     throw new IllegalStateException();
                 }
+                boolean anyDispatched = false;
                 for (Iterator<Task> iterator = taskList.iterator(); iterator.hasNext(); ) {
                     Task task = iterator.next();
                     if (task.isFinish()) {
                         continue;
                     }
                     if (task.canDispatch()) {
+                        anyDispatched = true;
                         if (log.isDebugEnabled()) {
                             log.debug("Start dispatch task=" + task);
                         }
@@ -181,7 +187,12 @@ public class UniThreadDispatcher implements ThreadDispatcher {
                                 task.destroy(emulator);
                                 iterator.remove();
                                 if(task.isMainThread()) {
-                                    return ret;
+                                    if (canReturn)
+                                        return ret;
+                                    else {
+                                        mainRet = ret;
+                                        pendReturn = true;
+                                    }
                                 }
                             } else {
                                 task.saveContext(emulator);
@@ -201,22 +212,27 @@ public class UniThreadDispatcher implements ThreadDispatcher {
                 }
 
                 Collections.reverse(threadTaskList);
-                for (Iterator<ThreadTask> iterator = threadTaskList.iterator(); iterator.hasNext(); ) {
+                for (Iterator<Task> iterator = threadTaskList.iterator(); iterator.hasNext(); ) {
                     taskList.add(0, iterator.next());
                     iterator.remove();
+                }
+
+                if (pendReturn && canReturn) {
+                    return mainRet;
                 }
 
                 if (timeout > 0 && unit != null &&
                         System.currentTimeMillis() - start >= unit.toMillis(timeout)) {
                     return null;
                 }
+
                 if (taskList.isEmpty()) {
                     return null;
                 }
 
                 if (log.isDebugEnabled()) {
                     try {
-                        TimeUnit.SECONDS.sleep(1);
+                        TimeUnit.MILLISECONDS.sleep(100);
                     } catch (InterruptedException ignored) {
                     }
                 }

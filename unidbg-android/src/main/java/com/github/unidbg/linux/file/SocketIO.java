@@ -176,6 +176,8 @@ public abstract class SocketIO extends BaseAndroidFileIO implements AndroidFileI
                             return 0;
                         case SO_RCVTIMEO:
                         case SO_SNDTIMEO: {
+                            int timeout = optval.getInt(0);
+                            setSoTimeout(timeout);
                             return 0;
                         }
                     }
@@ -206,6 +208,8 @@ public abstract class SocketIO extends BaseAndroidFileIO implements AndroidFileI
         log.warn("setsockopt level=" + level + ", optname=" + optname + ", optval=" + optval + ", optlen=" + optlen);
         return 0;
     }
+
+    protected abstract void setSoTimeout(int timeout) throws SocketException;
 
     protected abstract void setTcpNoDelay(int tcpNoDelay) throws SocketException;
 

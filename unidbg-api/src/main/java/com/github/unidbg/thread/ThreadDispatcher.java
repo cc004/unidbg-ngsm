@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 public interface ThreadDispatcher extends SignalOps {
 
-    void addThread(ThreadTask task);
+    void addThread(Task task);
 
     List<Task> getTaskList();
 

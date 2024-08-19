@@ -39,7 +39,7 @@ public class URLibraryFile implements LibraryFile {
         if (sdk <= 0) {
             return null;
         }
-        return AndroidResolver.resolveLibrary(emulator, soName, sdk);
+        return new AndroidResolver(sdk).resolveLibrary(emulator, soName);
     }
 
     @Override
