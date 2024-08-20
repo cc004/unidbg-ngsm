@@ -32,7 +32,7 @@ public class Ngsm{
         emulator = AndroidEmulatorBuilder.for64Bit()
                 .setProcessName(Constants.PACKAGE_NAME)
                 .build();
-        emulator.getSyscallHandler().setVerbose(false);
+        emulator.getSyscallHandler().setVerbose(true);
         emulator.getSyscallHandler().setEnableThreadDispatcher(true);
         // emulator.getSyscallHandler().addIOResolver(this);
         Memory memory = emulator.getMemory();

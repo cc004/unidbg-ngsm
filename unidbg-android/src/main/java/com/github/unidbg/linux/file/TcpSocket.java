@@ -191,6 +191,8 @@ public class TcpSocket extends SocketIO implements FileIO {
         }
     }
 
+    private InetSocketAddress peer;
+
     @Override
     protected int connect_ipv4(Pointer addr, int addrlen) {
         if (log.isDebugEnabled()) {
@@ -206,6 +208,7 @@ public class TcpSocket extends SocketIO implements FileIO {
         try {
             int port = Short.reverseBytes(addr.getShort(2)) & 0xffff;
             InetSocketAddress address = new InetSocketAddress(InetAddress.getByAddress(addr.getByteArray(4, 4)), port);
+            peer = address;
             // if (port == 443) address = new InetSocketAddress(InetAddress.getByName("localhost"), 443);
 
             socket.connect(new InetSocketAddress(InetAddress.getByName("localhost"), 8888));
@@ -225,6 +228,8 @@ public class TcpSocket extends SocketIO implements FileIO {
                 addressString = addressString.replace("/", "");
 
             addressString = addressString + ":" + address.getPort();
+
+            System.err.println("socket connect: " + addressString);
 
             String str = "" +
                     "CONNECT " + addressString + " HTTP/1.1\n" +
@@ -292,6 +297,7 @@ public class TcpSocket extends SocketIO implements FileIO {
     @Override
     public int getpeername(Pointer addr, Pointer addrlen) {
         InetSocketAddress remote = (InetSocketAddress) socket.getRemoteSocketAddress();
+        remote = peer;
         fillAddress(remote, addr, addrlen);
         return 0;
     }
