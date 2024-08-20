@@ -21,6 +21,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class TcpSocket extends SocketIO implements FileIO {
@@ -205,9 +206,55 @@ public class TcpSocket extends SocketIO implements FileIO {
         try {
             int port = Short.reverseBytes(addr.getShort(2)) & 0xffff;
             InetSocketAddress address = new InetSocketAddress(InetAddress.getByAddress(addr.getByteArray(4, 4)), port);
-            socket.connect(address);
+            // if (port == 443) address = new InetSocketAddress(InetAddress.getByName("localhost"), 443);
+
+            socket.connect(new InetSocketAddress(InetAddress.getByName("localhost"), 8888));
             outputStream = socket.getOutputStream();
             inputStream = new BufferedInputStream(socket.getInputStream());
+
+            String addressString = address.getAddress().toString();
+
+            if (addressString.equals("/54.150.7.255") || addressString.equals("/54.168.225.241") )
+                addressString = "api.ngsm.nexon.com";
+            else if (addressString.equals("/54.250.170.11") || addressString.equals("/54.150.202.113") ||
+                    addressString.equals("/57.181.246.96") || addressString.equals("/13.113.199.152"))
+                addressString = "log.ngsm.nexon.com";
+            else if (addressString.equals("/57.181.145.8") || addressString.equals("/52.193.109.153"))
+                addressString = "config.ngsm.nexon.com";
+            else
+                addressString = addressString.replace("/", "");
+
+            addressString = addressString + ":" + address.getPort();
+
+            String str = "" +
+                    "CONNECT " + addressString + " HTTP/1.1\n" +
+                    "User-Agent: Java/1.8.0_192\n" +
+                    "Host: " + addressString + "\n" +
+                    "Accept: */*\n" +
+                    "Proxy-Connection: keep-alive\n" +
+                    "\n";
+
+            outputStream.write(str.getBytes(StandardCharsets.UTF_8));
+
+            int state = 0;
+
+            while (true) {
+                int c = inputStream.read();
+                if (c == '\r' || c == '\n') {
+                    ++state;
+                    if (state == 4) {
+                        break;
+                    }
+                }
+                else {
+                    state = 0;
+                }
+            }
+
+            /*
+            socket.connect(address);
+            outputStream = socket.getOutputStream();
+            inputStream = new BufferedInputStream(socket.getInputStream());*/
             return 0;
         } catch (IOException e) {
             log.debug("connect ipv4 failed", e);
