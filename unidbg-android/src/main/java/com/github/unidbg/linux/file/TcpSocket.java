@@ -46,7 +46,7 @@ public class TcpSocket extends SocketIO implements FileIO {
 
         }
         if (emulator.getSyscallHandler().isVerbose()) {
-            System.out.printf("Tcp opened '%s' from %s%n", this, emulator.getContext().getLRPointer());
+            // System.out.printf("Tcp opened '%s' from %s%n", this, emulator.getContext().getLRPointer());
         }
     }
 

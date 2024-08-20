@@ -13,7 +13,7 @@ public class ApplicationInfo {
         this.packageName = packageName;
         this.nativeLibraryDir = "/data/app/" + packageName + "/lib/arm64";
         this.sourceDir = "/data/app/" + packageName + "/base.apk";
-        this.dataDir = "/data/data/" + packageName + "/files";
+        this.dataDir = "/data/data/" + packageName + "/files/";
     }
 
 }

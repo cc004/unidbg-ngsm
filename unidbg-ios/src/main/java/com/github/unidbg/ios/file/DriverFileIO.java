@@ -13,7 +13,7 @@ import com.sun.jna.Pointer;
 public class DriverFileIO extends BaseDarwinFileIO implements NewFileIO, DarwinFileIO {
 
     public static DriverFileIO create(Emulator<?> emulator, int oflags, String pathname) {
-        if ("/dev/urandom".equals(pathname) || "/dev/random".equals(pathname) || "/dev/srandom".equals(pathname)) {
+        if ("/dev/".equals(pathname) || "/dev/random".equals(pathname) || "/dev/srandom".equals(pathname)) {
             return new RandomFileIO(emulator, pathname);
         }
         if ("/dev/null".equals(pathname)) {

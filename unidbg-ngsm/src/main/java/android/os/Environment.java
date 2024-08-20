@@ -4,6 +4,6 @@ import java.io.File;
 
 public class Environment {
     public static File getExternalStorageDirectory() {
-        return new File("./ExternalStorage");
+        return new File("/storage/emulated/0");
     }
 }

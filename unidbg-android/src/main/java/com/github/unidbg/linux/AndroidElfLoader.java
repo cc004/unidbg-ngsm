@@ -295,6 +295,13 @@ public class AndroidElfLoader extends AbstractLoader<AndroidFileIO> implements M
                 return new VirtualSymbol(symbolName, null, hook);
             }
         }
+
+        LinuxModule libc = modules.get("libc.so");
+        Symbol symbol = libc.findSymbolByName(symbolName, false);
+        if (symbol != null) {
+            ret = symbol;
+        }
+
         return ret;
     }
 

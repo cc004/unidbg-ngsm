@@ -304,13 +304,15 @@ public class ArmLD64 extends Dlfcn {
                 pointer.setLong(0, 0);
 
                 if (!"libnetd_client.so".equals(filename)) {
-                    log.info("dlopen failed: " + filename);
+                    log.error("dlopen failed: " + filename);
                 } else if(log.isDebugEnabled()) {
-                    log.debug("dlopen failed: " + filename);
+                    log.error("dlopen failed: " + filename);
                 }
                 this.error.setString(0, "Resolve library " + filename + " failed");
                 return 0;
             } else {
+                log.info("dlopen loaded: " + filename);
+
                 pointer.setLong(0, module.base);
 
                 pointer = pointer.share(-8, 0); // NULL-terminated

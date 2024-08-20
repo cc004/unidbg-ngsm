@@ -38,7 +38,7 @@ public class Ngsm{
         Memory memory = emulator.getMemory();
         AndroidResolver resolver = new AndroidResolver(23);
         resolver.paths.add("/android/sdk23/");
-        resolver.paths.add("/android/sdk23/data/app/" + Constants.PACKAGE_NAME + "/lib/");
+        resolver.paths.add("/android/sdk23/data/app/" + Constants.PACKAGE_NAME + "/lib/arm64/");
         memory.setLibraryResolver(resolver);
         vm = emulator.createDalvikVM();
         vm.setDvmClassFactory(new ProxyClassFactory());

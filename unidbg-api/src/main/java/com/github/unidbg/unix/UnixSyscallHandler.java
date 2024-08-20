@@ -110,6 +110,10 @@ public abstract class UnixSyscallHandler<T extends NewFileIO> implements Syscall
     }
 
     protected final FileResult<T> resolve(Emulator<T> emulator, String pathname, int oflags) {
+        if (("/proc/" + emulator.getPid() + "/mounts").equals(pathname)) {
+            return resolve(emulator, "/proc/self/mounts", oflags);
+        }
+
         FileResult<T> failResult = null;
         for (IOResolver<T> resolver : resolvers) {
             FileResult<T> result = resolver.resolve(emulator, pathname, oflags);
@@ -290,7 +294,7 @@ public abstract class UnixSyscallHandler<T extends NewFileIO> implements Syscall
         }
         int read = file.read(emulator.getBackend(), buffer, count);
         if (verbose && !file.isStdIO()) {
-            System.out.printf("Read %d bytes from '%s'%n", read, file);
+            // System.out.printf("Read %d bytes from '%s'%n", read, file);
         }
         if (fileListener != null) {
             byte[] bytes;
@@ -326,7 +330,7 @@ public abstract class UnixSyscallHandler<T extends NewFileIO> implements Syscall
         if (file != null) {
             file.close();
             if (verbose) {
-                System.out.printf("File closed '%s' from %s%n", file, emulator.getContext().getLRPointer());
+                //System.out.printf("File closed '%s' from %s%n", file, emulator.getContext().getLRPointer());
             }
             if (fileListener != null) {
                 fileListener.onClose(emulator, file);
@@ -341,6 +345,11 @@ public abstract class UnixSyscallHandler<T extends NewFileIO> implements Syscall
     @Override
     public final int open(Emulator<T> emulator, String pathname, int oflags) {
         int minFd = this.getMinFd();
+
+        if (pathname.equals("/") || pathname.equals("/data/")) {
+            emulator.getMemory().setErrno(2);
+            return -1;
+        }
 
         FileResult<T> resolveResult = resolve(emulator, pathname, oflags);
         if (resolveResult != null && resolveResult.isSuccess()) {

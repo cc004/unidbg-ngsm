@@ -447,7 +447,7 @@ public abstract class AndroidSyscallHandler extends UnixSyscallHandler<AndroidFi
     protected long statfs64(Emulator<AndroidFileIO> emulator, String path, Pointer buf) {
         FileResult<AndroidFileIO> result = resolve(emulator, path, IOConstants.O_RDONLY);
         if (result == null) {
-            log.info("statfs64 buf={}, path={}", buf, path);
+            log.info("statfs64 err buf={}, path={}", buf, path);
             emulator.getMemory().setErrno(UnixEmulator.ENOENT);
             return -1;
         }
@@ -466,7 +466,7 @@ public abstract class AndroidSyscallHandler extends UnixSyscallHandler<AndroidFi
             }
             return ret;
         } else {
-            log.info("statfs64 buf={}, path={}", buf, path);
+            log.info("statfs64 err buf={}, path={}", buf, path);
             emulator.getMemory().setErrno(result.errno);
             return -1;
         }

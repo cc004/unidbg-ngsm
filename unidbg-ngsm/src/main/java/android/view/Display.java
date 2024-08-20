@@ -2,9 +2,9 @@ package android.view;
 
 public class Display {
     public int getWidth() {
-        return 1920;
+        return 2560;
     }
     public int getHeight() {
-        return 1080;
+        return 1440;
     }
 }
