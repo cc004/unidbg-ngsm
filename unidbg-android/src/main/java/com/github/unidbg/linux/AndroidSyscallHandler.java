@@ -764,7 +764,7 @@ public abstract class AndroidSyscallHandler extends UnixSyscallHandler<AndroidFi
             log.debug("nanosleep req={}, rem={}, timeSpec={}", req, rem, timeSpec);
         }
         RunnableTask runningTask = emulator.getThreadDispatcher().getRunningTask();
-        if (threadDispatcherEnabled && runningTask != null) {
+            if (threadDispatcherEnabled && runningTask != null) {
             runningTask.setWaiter(emulator, new NanoSleepWaiter(emulator, rem, timeSpec));
             throw new ThreadContextSwitchException().setReturnValue(0);
         } else {

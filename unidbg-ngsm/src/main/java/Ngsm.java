@@ -3,6 +3,7 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.view.WindowManager;
 import com.github.unidbg.AndroidEmulator;
+import com.github.unidbg.arm.backend.DynarmicFactory;
 import com.github.unidbg.linux.android.AndroidEmulatorBuilder;
 import com.github.unidbg.linux.android.AndroidResolver;
 import com.github.unidbg.linux.android.dvm.*;
@@ -23,6 +24,7 @@ public class Ngsm{
     public Ngsm() {
         emulator = AndroidEmulatorBuilder.for64Bit()
                 .setProcessName(Constants.PACKAGE_NAME)
+                .addBackendFactory(new DynarmicFactory(false))
                 .build();
         emulator.getSyscallHandler().setVerbose(false);
         emulator.getSyscallHandler().setEnableThreadDispatcher(true);

@@ -12,7 +12,7 @@ import com.sun.jna.Pointer;
 import unicorn.Arm64Const;
 import unicorn.ArmConst;
 
-public class PipeReceiveWaiter extends AbstractWaiter {
+public class ReceiveWaiter extends AbstractWaiter {
     private final Emulator<?> emulator;
     private final Backend backend;
     private final SocketIO file;
@@ -25,8 +25,8 @@ public class PipeReceiveWaiter extends AbstractWaiter {
     private final Thread thread;
     private int ret;
 
-    public PipeReceiveWaiter(Emulator<?> emulator, SocketIO file, Backend backend, Pointer buf, int len, int flags,
-                             Pointer src_addr, Pointer addrlen) {
+    public ReceiveWaiter(Emulator<?> emulator, SocketIO file, Backend backend, Pointer buf, int len, int flags,
+                         Pointer src_addr, Pointer addrlen) {
         this.emulator = emulator;
         this.file = file;
         this.backend = backend;
