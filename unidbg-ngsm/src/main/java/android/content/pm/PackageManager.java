@@ -13,7 +13,7 @@ public class PackageManager {
 
     public List<PackageInfo> getInstalledPackages(int flags) {
         List<PackageInfo> result = new ArrayList<>();
-        result.add(new PackageInfo(Constants.PACKAGE_NAME));
+        // result.add(new PackageInfo(Constants.PACKAGE_NAME));
         return result;
     }
 }

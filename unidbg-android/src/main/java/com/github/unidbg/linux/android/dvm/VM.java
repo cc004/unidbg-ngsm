@@ -51,6 +51,7 @@ public interface VM {
 
     void printMemoryInfo();
 
+    DalvikModule loadLibrary(LibraryFile libraryFile, boolean forceCallInit);
     DalvikModule loadLibrary(String libname, boolean forceCallInit);
     DalvikModule loadLibrary(String libname, byte[] raw, boolean forceCallInit);
     DalvikModule loadLibrary(File elfFile, boolean forceCallInit);

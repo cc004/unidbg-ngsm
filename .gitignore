@@ -12,10 +12,10 @@
 /unidbg-ios/target/
 /unidbg-ngsm/target/
 /unidbg-android/target/
-/unidbg-android/src/main/resources/android/sdk23/data/
 /backend/*/target/
 /backend/*/*.iml
 *.i64
 *.idb
+/unidbg-android/src/main/resources/android/sdk23/data/
 /unidbg-ios/src/test/resources/native/swift/swift_library.o
 /unidbg-ios/src/test/resources/native/swift/swift_library-Swift.h

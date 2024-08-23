@@ -248,6 +248,12 @@ public abstract class BaseVM implements VM, DvmClassFactory {
     }
 
     @Override
+    public final DalvikModule loadLibrary(LibraryFile libraryFile, boolean forceCallInit) {
+        Module module = emulator.getMemory().load(libraryFile, forceCallInit);
+        return new DalvikModule(this, module);
+    }
+
+    @Override
     public final DalvikModule loadLibrary(String libname, boolean forceCallInit) {
         String soName = "lib" + libname + ".so";
         LibraryFile libraryFile = findLibrary(soName);

@@ -21,9 +21,12 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class TcpSocket extends SocketIO implements FileIO {
+
+    public static InetSocketAddress proxy;
 
     private static final Log log = LogFactory.getLog(TcpSocket.class);
 
@@ -40,7 +43,7 @@ public class TcpSocket extends SocketIO implements FileIO {
         this.emulator = emulator;
         this.socket = socket;
         try {
-            socket.setSoTimeout(5000);
+            socket.setSoTimeout(3000);
         } catch (SocketException ignored) {
 
         }
@@ -190,6 +193,8 @@ public class TcpSocket extends SocketIO implements FileIO {
         }
     }
 
+    private InetSocketAddress peer;
+
     @Override
     protected int connect_ipv4(Pointer addr, int addrlen) {
         if (log.isDebugEnabled()) {
@@ -205,9 +210,53 @@ public class TcpSocket extends SocketIO implements FileIO {
         try {
             int port = Short.reverseBytes(addr.getShort(2)) & 0xffff;
             InetSocketAddress address = new InetSocketAddress(InetAddress.getByAddress(addr.getByteArray(4, 4)), port);
-            socket.connect(address);
-            outputStream = socket.getOutputStream();
-            inputStream = new BufferedInputStream(socket.getInputStream());
+            peer = address;
+            // if (port == 443) address = new InetSocketAddress(InetAddress.getByName("localhost"), 443);
+
+            if (proxy != null) {
+                socket.connect(new InetSocketAddress(InetAddress.getByName("localhost"), 8888));
+                outputStream = socket.getOutputStream();
+                inputStream = new BufferedInputStream(socket.getInputStream());
+
+                String addressString = address.getAddress().toString();
+
+                addressString = addressString.replace("/", "");
+
+                addressString = addressString + ":" + address.getPort();
+
+                System.err.println("socket connect: " + addressString);
+
+                String str = "" +
+                        "CONNECT " + addressString + " HTTP/1.1\n" +
+                        "User-Agent: Java/1.8.0_192\n" +
+                        "Host: " + addressString + "\n" +
+                        "Accept: */*\n" +
+                        "Proxy-Connection: keep-alive\n" +
+                        "\n";
+
+                outputStream.write(str.getBytes(StandardCharsets.UTF_8));
+
+                int state = 0;
+
+                while (true) {
+                    int c = inputStream.read();
+                    if (c == '\r' || c == '\n') {
+                        ++state;
+                        if (state == 4) {
+                            break;
+                        }
+                    }
+                    else {
+                        state = 0;
+                    }
+                }
+
+            }
+            else {
+                socket.connect(address);
+                outputStream = socket.getOutputStream();
+                inputStream = new BufferedInputStream(socket.getInputStream());
+            }
             return 0;
         } catch (IOException e) {
             log.debug("connect ipv4 failed", e);
@@ -245,6 +294,7 @@ public class TcpSocket extends SocketIO implements FileIO {
     @Override
     public int getpeername(Pointer addr, Pointer addrlen) {
         InetSocketAddress remote = (InetSocketAddress) socket.getRemoteSocketAddress();
+        remote = peer;
         fillAddress(remote, addr, addrlen);
         return 0;
     }

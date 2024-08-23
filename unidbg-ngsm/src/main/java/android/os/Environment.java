@@ -1,9 +1,9 @@
 package android.os;
 
-import java.io.File;
+import jvav.io.File;
 
 public class Environment {
-    public static File getExternalStorageDirectory() {
-        return new File("./ExternalStorage");
+    public static java.io.File getExternalStorageDirectory() {
+        return new File("/storage/emulated/0");
     }
 }

@@ -1,25 +1,17 @@
 import android.Constants;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.view.WindowManager;
 import com.github.unidbg.AndroidEmulator;
-import com.github.unidbg.Emulator;
-import com.github.unidbg.file.FileResult;
-import com.github.unidbg.file.IOResolver;
-import com.github.unidbg.file.linux.AndroidFileIO;
 import com.github.unidbg.linux.android.AndroidEmulatorBuilder;
 import com.github.unidbg.linux.android.AndroidResolver;
 import com.github.unidbg.linux.android.dvm.*;
 import com.github.unidbg.linux.android.dvm.jni.*;
-import com.github.unidbg.linux.file.SimpleFileIO;
 import com.github.unidbg.memory.Memory;
-import com.github.unidbg.thread.Task;
 import com.github.unidbg.thread.UniThreadDispatcher;
+import jvav.io.File;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 public class Ngsm{
     private final AndroidEmulator emulator;
@@ -34,21 +26,25 @@ public class Ngsm{
                 .build();
         emulator.getSyscallHandler().setVerbose(false);
         emulator.getSyscallHandler().setEnableThreadDispatcher(true);
-        // emulator.getSyscallHandler().addIOResolver(this);
         Memory memory = emulator.getMemory();
         AndroidResolver resolver = new AndroidResolver(23);
         resolver.paths.add("/android/sdk23/");
-        resolver.paths.add("/android/sdk23/data/app/" + Constants.PACKAGE_NAME + "/lib/");
+        resolver.paths.add("/android/sdk23/data/app/" + Constants.PACKAGE_NAME + "/lib/arm64/");
         memory.setLibraryResolver(resolver);
         vm = emulator.createDalvikVM();
         vm.setDvmClassFactory(new ProxyClassFactory());
-        vm.setVerbose(true);
+        vm.setVerbose(false);
 
         dispatcher = (UniThreadDispatcher) emulator.getThreadDispatcher();
         dispatcher.canReturn = true;
 
-        DalvikModule dm = vm.loadLibrary(new File(
-                "unidbg-ngsm/src/main/resources/libngsm.so"), false);
+        emulator.getMemory().load(resolver.resolveLibrary(emulator, "libmain.so"), false);
+        emulator.getMemory().load(resolver.resolveLibrary(emulator, "libil2cpp.so"), false);
+        emulator.getMemory().load(resolver.resolveLibrary(emulator, "libngsm.so"), false);
+        // emulator.getMemory()
+        // vm.loadLibrary(resolver.resolveLibrary(emulator, "libmain.so"), false);
+        // vm.loadLibrary(resolver.resolveLibrary(emulator, "libil2cpp.so"), false);
+        DalvikModule dm = vm.loadLibrary(resolver.resolveLibrary(emulator, "libngsm.so"), false);;
         Ngsm = vm.resolveClass("com/nexon/ngsm/Ngsm");
         dm.callJNI_OnLoad(emulator);
     }
@@ -97,7 +93,7 @@ public class Ngsm{
     public ApplicationInfo getApplicationInfo() {
         return new ApplicationInfo(Constants.PACKAGE_NAME);
     }
-    public File getFilesDir() {
+    public java.io.File getFilesDir() {
         return new File("/data/data/" + Constants.PACKAGE_NAME + "/files/");
     }
     public String getPackageCodePath() {
